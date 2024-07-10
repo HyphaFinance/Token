@@ -1,0 +1,1222 @@
+/**
+ *Submitted for verification at Etherscan.io on 2024-06-29
+*/
+
+//
+//    _   ___   ______  _   _    _      _____ ___ _   _    _    _   _  ____ _____ 
+//   | | | \ \ / /  _ \| | | |  / \    |  ___|_ _| \ | |  / \  | \ | |/ ___| ____|
+//   | |_| |\ V /| |_) | |_| | / _ \   | |_   | ||  \| | / _ \ |  \| | |   |  _|  
+//   |  _  | | | |  __/|  _  |/ ___ \  |  _|  | || |\  |/ ___ \| |\  | |___| |___ 
+//   |_| |_| |_| |_|   |_| |_/_/   \_\ |_|   |___|_| \_/_/   \_\_| \_|\____|_____|
+//                                                             
+// 
+// Website: https://www.hypha.finance
+// Linktree: https://linktr.ee/hypha_finance
+// 
+// 
+
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.26.0;
+
+
+interface IERC20 {
+    /**
+     * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * another (`to`).
+     *
+     * Note that `value` may be zero.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    /**
+     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+     * a call to {approve}. `value` is the new allowance.
+     */
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    /**
+     * @dev Returns the value of tokens in existence.
+     */
+    function totalSupply() external view returns (uint256);
+
+    /**
+     * @dev Returns the value of tokens owned by `account`.
+     */
+    function balanceOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Moves a `value` amount of tokens from the caller's account to `to`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address to, uint256 value) external returns (bool);
+
+    /**
+     * @dev Returns the remaining number of tokens that `spender` will be
+     * allowed to spend on behalf of `owner` through {transferFrom}. This is
+     * zero by default.
+     *
+     * This value changes when {approve} or {transferFrom} are called.
+     */
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    /**
+     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the
+     * caller's tokens.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * IMPORTANT: Beware that changing an allowance with this method brings the risk
+     * that someone may use both the old and the new allowance by unfortunate
+     * transaction ordering. One possible solution to mitigate this race
+     * condition is to first reduce the spender's allowance to 0 and set the
+     * desired value afterwards:
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address spender, uint256 value) external returns (bool);
+
+    /**
+     * @dev Moves a `value` amount of tokens from `from` to `to` using the
+     * allowance mechanism. `value` is then deducted from the caller's
+     * allowance.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+}
+
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+
+    function _contextSuffixLength() internal view virtual returns (uint256) {
+        return 0;
+    }
+}
+
+interface IAccessControl {
+    /**
+     * @dev The `account` is missing a role.
+     */
+    error AccessControlUnauthorizedAccount(address account, bytes32 neededRole);
+
+    /**
+     * @dev The caller of a function is not the expected one.
+     *
+     * NOTE: Don't confuse with {AccessControlUnauthorizedAccount}.
+     */
+    error AccessControlBadConfirmation();
+
+    /**
+     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`
+     *
+     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite
+     * {RoleAdminChanged} not being emitted signaling this.
+     */
+    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);
+
+    /**
+     * @dev Emitted when `account` is granted `role`.
+     *
+     * `sender` is the account that originated the contract call, an admin role
+     * bearer except when using {AccessControl-_setupRole}.
+     */
+    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
+
+    /**
+     * @dev Emitted when `account` is revoked `role`.
+     *
+     * `sender` is the account that originated the contract call:
+     *   - if using `revokeRole`, it is the admin role bearer
+     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
+     */
+    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
+
+    /**
+     * @dev Returns `true` if `account` has been granted `role`.
+     */
+    function hasRole(bytes32 role, address account) external view returns (bool);
+
+    /**
+     * @dev Returns the admin role that controls `role`. See {grantRole} and
+     * {revokeRole}.
+     *
+     * To change a role's admin, use {AccessControl-_setRoleAdmin}.
+     */
+    function getRoleAdmin(bytes32 role) external view returns (bytes32);
+
+    /**
+     * @dev Grants `role` to `account`.
+     *
+     * If `account` had not been already granted `role`, emits a {RoleGranted}
+     * event.
+     *
+     * Requirements:
+     *
+     * - the caller must have ``role``'s admin role.
+     */
+    function grantRole(bytes32 role, address account) external;
+
+    /**
+     * @dev Revokes `role` from `account`.
+     *
+     * If `account` had been granted `role`, emits a {RoleRevoked} event.
+     *
+     * Requirements:
+     *
+     * - the caller must have ``role``'s admin role.
+     */
+    function revokeRole(bytes32 role, address account) external;
+
+    /**
+     * @dev Revokes `role` from the calling account.
+     *
+     * Roles are often managed via {grantRole} and {revokeRole}: this function's
+     * purpose is to provide a mechanism for accounts to lose their privileges
+     * if they are compromised (such as when a trusted device is misplaced).
+     *
+     * If the calling account had been granted `role`, emits a {RoleRevoked}
+     * event.
+     *
+     * Requirements:
+     *
+     * - the caller must be `callerConfirmation`.
+     */
+    function renounceRole(bytes32 role, address callerConfirmation) external;
+}
+
+interface IERC165 {
+    /**
+     * @dev Returns true if this contract implements the interface defined by
+     * `interfaceId`. See the corresponding
+     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section]
+     * to learn more about how these ids are created.
+     *
+     * This function call must use less than 30 000 gas.
+     */
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+}
+
+abstract contract ERC165 is IERC165 {
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
+        return interfaceId == type(IERC165).interfaceId;
+    }
+}
+
+abstract contract AccessControl is Context, IAccessControl, ERC165 {
+    struct RoleData {
+        mapping(address account => bool) hasRole;
+        bytes32 adminRole;
+    }
+
+    mapping(bytes32 role => RoleData) private _roles;
+
+    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
+
+    /**
+     * @dev Modifier that checks that an account has a specific role. Reverts
+     * with an {AccessControlUnauthorizedAccount} error including the required role.
+     */
+    modifier onlyRole(bytes32 role) {
+        _checkRole(role);
+        _;
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IAccessControl).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev Returns `true` if `account` has been granted `role`.
+     */
+    function hasRole(bytes32 role, address account) public view virtual returns (bool) {
+        return _roles[role].hasRole[account];
+    }
+
+    /**
+     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `_msgSender()`
+     * is missing `role`. Overriding this function changes the behavior of the {onlyRole} modifier.
+     */
+    function _checkRole(bytes32 role) internal view virtual {
+        _checkRole(role, _msgSender());
+    }
+
+    /**
+     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `account`
+     * is missing `role`.
+     */
+    function _checkRole(bytes32 role, address account) internal view virtual {
+        if (!hasRole(role, account)) {
+            revert AccessControlUnauthorizedAccount(account, role);
+        }
+    }
+
+    /**
+     * @dev Returns the admin role that controls `role`. See {grantRole} and
+     * {revokeRole}.
+     *
+     * To change a role's admin, use {_setRoleAdmin}.
+     */
+    function getRoleAdmin(bytes32 role) public view virtual returns (bytes32) {
+        return _roles[role].adminRole;
+    }
+
+    /**
+     * @dev Grants `role` to `account`.
+     *
+     * If `account` had not been already granted `role`, emits a {RoleGranted}
+     * event.
+     *
+     * Requirements:
+     *
+     * - the caller must have ``role``'s admin role.
+     *
+     * May emit a {RoleGranted} event.
+     */
+    function grantRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {
+        _grantRole(role, account);
+    }
+
+    /**
+     * @dev Revokes `role` from `account`.
+     *
+     * If `account` had been granted `role`, emits a {RoleRevoked} event.
+     *
+     * Requirements:
+     *
+     * - the caller must have ``role``'s admin role.
+     *
+     * May emit a {RoleRevoked} event.
+     */
+    function revokeRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {
+        _revokeRole(role, account);
+    }
+
+    /**
+     * @dev Revokes `role` from the calling account.
+     *
+     * Roles are often managed via {grantRole} and {revokeRole}: this function's
+     * purpose is to provide a mechanism for accounts to lose their privileges
+     * if they are compromised (such as when a trusted device is misplaced).
+     *
+     * If the calling account had been revoked `role`, emits a {RoleRevoked}
+     * event.
+     *
+     * Requirements:
+     *
+     * - the caller must be `callerConfirmation`.
+     *
+     * May emit a {RoleRevoked} event.
+     */
+    function renounceRole(bytes32 role, address callerConfirmation) public virtual {
+        if (callerConfirmation != _msgSender()) {
+            revert AccessControlBadConfirmation();
+        }
+
+        _revokeRole(role, callerConfirmation);
+    }
+
+    /**
+     * @dev Sets `adminRole` as ``role``'s admin role.
+     *
+     * Emits a {RoleAdminChanged} event.
+     */
+    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {
+        bytes32 previousAdminRole = getRoleAdmin(role);
+        _roles[role].adminRole = adminRole;
+        emit RoleAdminChanged(role, previousAdminRole, adminRole);
+    }
+
+    /**
+     * @dev Attempts to grant `role` to `account` and returns a boolean indicating if `role` was granted.
+     *
+     * Internal function without access restriction.
+     *
+     * May emit a {RoleGranted} event.
+     */
+    function _grantRole(bytes32 role, address account) internal virtual returns (bool) {
+        if (!hasRole(role, account)) {
+            _roles[role].hasRole[account] = true;
+            emit RoleGranted(role, account, _msgSender());
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @dev Attempts to revoke `role` to `account` and returns a boolean indicating if `role` was revoked.
+     *
+     * Internal function without access restriction.
+     *
+     * May emit a {RoleRevoked} event.
+     */
+    function _revokeRole(bytes32 role, address account) internal virtual returns (bool) {
+        if (hasRole(role, account)) {
+            _roles[role].hasRole[account] = false;
+            emit RoleRevoked(role, account, _msgSender());
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+interface IERC1363 is IERC20, IERC165 {
+    /*
+     * Note: the ERC-165 identifier for this interface is 0xb0202a11.
+     * 0xb0202a11 ===
+     *   bytes4(keccak256('transferAndCall(address,uint256)')) ^
+     *   bytes4(keccak256('transferAndCall(address,uint256,bytes)')) ^
+     *   bytes4(keccak256('transferFromAndCall(address,address,uint256)')) ^
+     *   bytes4(keccak256('transferFromAndCall(address,address,uint256,bytes)')) ^
+     *   bytes4(keccak256('approveAndCall(address,uint256)')) ^
+     *   bytes4(keccak256('approveAndCall(address,uint256,bytes)'))
+     */
+
+    /**
+     * @dev Moves a `value` amount of tokens from the caller's account to `to`
+     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.
+     * @param to The address which you want to transfer to.
+     * @param value The amount of tokens to be transferred.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function transferAndCall(address to, uint256 value) external returns (bool);
+
+    /**
+     * @dev Moves a `value` amount of tokens from the caller's account to `to`
+     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.
+     * @param to The address which you want to transfer to.
+     * @param value The amount of tokens to be transferred.
+     * @param data Additional data with no specified format, sent in call to `to`.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool);
+
+    /**
+     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism
+     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.
+     * @param from The address which you want to send tokens from.
+     * @param to The address which you want to transfer to.
+     * @param value The amount of tokens to be transferred.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function transferFromAndCall(address from, address to, uint256 value) external returns (bool);
+
+    /**
+     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism
+     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.
+     * @param from The address which you want to send tokens from.
+     * @param to The address which you want to transfer to.
+     * @param value The amount of tokens to be transferred.
+     * @param data Additional data with no specified format, sent in call to `to`.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function transferFromAndCall(address from, address to, uint256 value, bytes calldata data) external returns (bool);
+
+    /**
+     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the
+     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.
+     * @param spender The address which will spend the funds.
+     * @param value The amount of tokens to be spent.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function approveAndCall(address spender, uint256 value) external returns (bool);
+
+    /**
+     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the
+     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.
+     * @param spender The address which will spend the funds.
+     * @param value The amount of tokens to be spent.
+     * @param data Additional data with no specified format, sent in call to `spender`.
+     * @return A boolean value indicating whether the operation succeeded unless throwing.
+     */
+    function approveAndCall(address spender, uint256 value, bytes calldata data) external returns (bool);
+}
+
+library SafeERC20 {
+    /**
+     * @dev An operation with an ERC-20 token failed.
+     */
+    error SafeERC20FailedOperation(address token);
+
+    /**
+     * @dev Indicates a failed `decreaseAllowance` request.
+     */
+    error SafeERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease);
+
+    /**
+     * @dev Transfer `value` amount of `token` from the calling contract to `to`. If `token` returns no value,
+     * non-reverting calls are assumed to be successful.
+     */
+    function safeTransfer(IERC20 token, address to, uint256 value) internal {
+        _callOptionalReturn(token, abi.encodeCall(token.transfer, (to, value)));
+    }
+
+    /**
+     * @dev Transfer `value` amount of `token` from `from` to `to`, spending the approval given by `from` to the
+     * calling contract. If `token` returns no value, non-reverting calls are assumed to be successful.
+     */
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
+        _callOptionalReturn(token, abi.encodeCall(token.transferFrom, (from, to, value)));
+    }
+
+    /**
+     * @dev Increase the calling contract's allowance toward `spender` by `value`. If `token` returns no value,
+     * non-reverting calls are assumed to be successful.
+     */
+    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {
+        uint256 oldAllowance = token.allowance(address(this), spender);
+        forceApprove(token, spender, oldAllowance + value);
+    }
+
+    /**
+     * @dev Decrease the calling contract's allowance toward `spender` by `requestedDecrease`. If `token` returns no
+     * value, non-reverting calls are assumed to be successful.
+     */
+    function safeDecreaseAllowance(IERC20 token, address spender, uint256 requestedDecrease) internal {
+        unchecked {
+            uint256 currentAllowance = token.allowance(address(this), spender);
+            if (currentAllowance < requestedDecrease) {
+                revert SafeERC20FailedDecreaseAllowance(spender, currentAllowance, requestedDecrease);
+            }
+            forceApprove(token, spender, currentAllowance - requestedDecrease);
+        }
+    }
+
+    /**
+     * @dev Set the calling contract's allowance toward `spender` to `value`. If `token` returns no value,
+     * non-reverting calls are assumed to be successful. Meant to be used with tokens that require the approval
+     * to be set to zero before setting it to a non-zero value, such as USDT.
+     */
+    function forceApprove(IERC20 token, address spender, uint256 value) internal {
+        bytes memory approvalCall = abi.encodeCall(token.approve, (spender, value));
+
+        if (!_callOptionalReturnBool(token, approvalCall)) {
+            _callOptionalReturn(token, abi.encodeCall(token.approve, (spender, 0)));
+            _callOptionalReturn(token, approvalCall);
+        }
+    }
+
+    /**
+     * @dev Performs an {ERC1363} transferAndCall, with a fallback to the simple {ERC20} transfer if the target has no
+     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when
+     * targeting contracts.
+     *
+     * Reverts if the returned value is other than `true`.
+     */
+    function transferAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {
+        if (to.code.length == 0) {
+            safeTransfer(token, to, value);
+        } else if (!token.transferAndCall(to, value, data)) {
+            revert SafeERC20FailedOperation(address(token));
+        }
+    }
+
+    /**
+     * @dev Performs an {ERC1363} transferFromAndCall, with a fallback to the simple {ERC20} transferFrom if the target
+     * has no code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when
+     * targeting contracts.
+     *
+     * Reverts if the returned value is other than `true`.
+     */
+    function transferFromAndCallRelaxed(
+        IERC1363 token,
+        address from,
+        address to,
+        uint256 value,
+        bytes memory data
+    ) internal {
+        if (to.code.length == 0) {
+            safeTransferFrom(token, from, to, value);
+        } else if (!token.transferFromAndCall(from, to, value, data)) {
+            revert SafeERC20FailedOperation(address(token));
+        }
+    }
+
+    /**
+     * @dev Performs an {ERC1363} approveAndCall, with a fallback to the simple {ERC20} approve if the target has no
+     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when
+     * targeting contracts.
+     *
+     * NOTE: When the recipient address (`to`) has no code (i.e. is an EOA), this function behaves as {forceApprove}.
+     * Opposedly, when the recipient address (`to`) has code, this function only attempts to call {ERC1363-approveAndCall}
+     * once without retrying, and relies on the returned value to be true.
+     *
+     * Reverts if the returned value is other than `true`.
+     */
+    function approveAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {
+        if (to.code.length == 0) {
+            forceApprove(token, to, value);
+        } else if (!token.approveAndCall(to, value, data)) {
+            revert SafeERC20FailedOperation(address(token));
+        }
+    }
+
+    /**
+     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
+     * on the return value: the return value is optional (but if data is returned, it must not be false).
+     * @param token The token targeted by the call.
+     * @param data The call data (encoded using abi.encode or one of its variants).
+     *
+     * This is a variant of {_callOptionalReturnBool} that reverts if call fails to meet the requirements.
+     */
+    function _callOptionalReturn(IERC20 token, bytes memory data) private {
+        uint256 returnSize;
+        uint256 returnValue;
+        assembly ("memory-safe") {
+            let success := call(gas(), token, 0, add(data, 0x20), mload(data), 0, 0x20)
+            // bubble errors
+            if iszero(success) {
+                let ptr := mload(0x40)
+                returndatacopy(ptr, 0, returndatasize())
+                revert(ptr, returndatasize())
+            }
+            returnSize := returndatasize()
+            returnValue := mload(0)
+        }
+
+        if (returnSize == 0 ? address(token).code.length == 0 : returnValue != 1) {
+            revert SafeERC20FailedOperation(address(token));
+        }
+    }
+
+    /**
+     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
+     * on the return value: the return value is optional (but if data is returned, it must not be false).
+     * @param token The token targeted by the call.
+     * @param data The call data (encoded using abi.encode or one of its variants).
+     *
+     * This is a variant of {_callOptionalReturn} that silently catches all reverts and returns a bool instead.
+     */
+    function _callOptionalReturnBool(IERC20 token, bytes memory data) private returns (bool) {
+        bool success;
+        uint256 returnSize;
+        uint256 returnValue;
+        assembly ("memory-safe") {
+            success := call(gas(), token, 0, add(data, 0x20), mload(data), 0, 0x20)
+            returnSize := returndatasize()
+            returnValue := mload(0)
+        }
+        return success && (returnSize == 0 ? address(token).code.length > 0 : returnValue == 1);
+    }
+}
+
+abstract contract ReentrancyGuard {
+    // Booleans are more expensive than uint256 or any type that takes up a full
+    // word because each write operation emits an extra SLOAD to first read the
+    // slot's contents, replace the bits taken up by the boolean, and then write
+    // back. This is the compiler's defense against contract upgrades and
+    // pointer aliasing, and it cannot be disabled.
+
+    // The values being non-zero value makes deployment a bit more expensive,
+    // but in exchange the refund on every call to nonReentrant will be lower in
+    // amount. Since refunds are capped to a percentage of the total
+    // transaction's gas, it is best to keep them low in cases like this one, to
+    // increase the likelihood of the full refund coming into effect.
+    uint256 private constant NOT_ENTERED = 1;
+    uint256 private constant ENTERED = 2;
+
+    uint256 private _status;
+
+    /**
+     * @dev Unauthorized reentrant call.
+     */
+    error ReentrancyGuardReentrantCall();
+
+    constructor() {
+        _status = NOT_ENTERED;
+    }
+
+    /**
+     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * Calling a `nonReentrant` function from another `nonReentrant`
+     * function is not supported. It is possible to prevent this from happening
+     * by making the `nonReentrant` function external, and making it call a
+     * `private` function that does the actual work.
+     */
+    modifier nonReentrant() {
+        _nonReentrantBefore();
+        _;
+        _nonReentrantAfter();
+    }
+
+    function _nonReentrantBefore() private {
+        // On the first call to nonReentrant, _status will be NOT_ENTERED
+        if (_status == ENTERED) {
+            revert ReentrancyGuardReentrantCall();
+        }
+
+        // Any calls to nonReentrant after this point will fail
+        _status = ENTERED;
+    }
+
+    function _nonReentrantAfter() private {
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = NOT_ENTERED;
+    }
+
+    /**
+     * @dev Returns true if the reentrancy guard is currently set to "entered", which indicates there is a
+     * `nonReentrant` function in the call stack.
+     */
+    function _reentrancyGuardEntered() internal view returns (bool) {
+        return _status == ENTERED;
+    }
+}
+
+interface AggregatorV3Interface {
+  function decimals() external view returns (uint8);
+
+  function description() external view returns (string memory);
+
+  function version() external view returns (uint256);
+
+  function getRoundData(
+    uint80 _roundId
+  ) external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+
+  function latestRoundData()
+    external
+    view
+    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+}
+
+abstract contract Pausable is Context {
+    bool private _paused;
+
+    /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
+
+    /**
+     * @dev The operation failed because the contract is paused.
+     */
+    error EnforcedPause();
+
+    /**
+     * @dev The operation failed because the contract is not paused.
+     */
+    error ExpectedPause();
+
+    /**
+     * @dev Initializes the contract in unpaused state.
+     */
+    constructor() {
+        _paused = false;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is not paused.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    modifier whenNotPaused() {
+        _requireNotPaused();
+        _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    modifier whenPaused() {
+        _requirePaused();
+        _;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view virtual returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Throws if the contract is paused.
+     */
+    function _requireNotPaused() internal view virtual {
+        if (paused()) {
+            revert EnforcedPause();
+        }
+    }
+
+    /**
+     * @dev Throws if the contract is not paused.
+     */
+    function _requirePaused() internal view virtual {
+        if (!paused()) {
+            revert ExpectedPause();
+        }
+    }
+
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function _pause() internal virtual whenNotPaused {
+        _paused = true;
+        emit Paused(_msgSender());
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function _unpause() internal virtual whenPaused {
+        _paused = false;
+        emit Unpaused(_msgSender());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+interface VestingInterface{
+    function transferToVesting(address beneficiary, uint256 amount, uint256 duration) external returns (bool success);
+}
+
+contract HyphaPresale is AccessControl, Pausable, ReentrancyGuard {
+  using SafeMath for uint256;
+  using SafeERC20 for IERC20;
+
+  IERC20 private hyphaToken;
+  VestingInterface vestingContract;
+
+  bool private claimEnabled;
+
+  uint256 public totalTokenSold;
+  uint256 internal roundTokenSold;
+  uint256 public currentRound;
+
+  address internal presaleWallet;
+  address internal vestingAddress;
+  
+  uint256 private roundRewardPercentage = 0.1 * 10**18;
+  uint256 private minAmountToInvest = 10;
+
+  uint256[] private roundTokenPrice = [ 
+    42000,
+    62800,
+    78500,
+    98100,
+    113400,
+    128900,
+    148300,
+    168000
+  ];
+
+  uint256[] private roundTokenDates = [ 
+    1720742400,
+    1726099200,
+    1728691200,
+    1731369600,
+    1733961600,
+    1736640000,
+    1739318400,
+    1741737600 
+  ];
+
+  uint256 private roundTokenLimit = 5000000000 * 1e18;
+
+  struct coinPairs {
+    address coinAddress;
+    uint256 chainID;
+    bool active;
+  }
+
+  struct buyRequests {
+    uint256 quantity;
+    uint256 rewards;
+  }
+
+  mapping(address => coinPairs[]) internal CoinPairs;
+  mapping(address => buyRequests[]) internal BuyRequests;
+  mapping(address => address) internal BuyReferrals;
+
+  event PurchaseInitiated(address buyer, uint256 amount, string paymentId);
+  event PaymentProcessed(address buyer, uint256 amount, bool success);
+  event Buy(address indexed buyer);
+
+  event Received(address, uint256);
+
+  bytes32 public constant VESTING_ROLE = keccak256("VESTING_ROLE");
+  bytes32 public constant PRESALE_ROLE = keccak256("PRESALE_ROLE");
+
+  constructor (address tokenContractAddress, address defaultAdmin, address _presaleWallet) {
+    _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+    _grantRole(VESTING_ROLE, defaultAdmin); // Change befor launch
+    _grantRole(PRESALE_ROLE, defaultAdmin); // Change befor launch
+
+    hyphaToken = IERC20(tokenContractAddress);
+
+    currentRound  = 0;
+
+    claimEnabled = false;
+
+    presaleWallet = _presaleWallet;
+
+    vestingAddress = defaultAdmin; // Change befor launch
+    vestingContract = VestingInterface(vestingAddress);
+  }
+
+  function totalPresaleToken() public view returns(uint) {
+    return hyphaToken.balanceOf(address(this));
+  }
+
+  function getBothToken() public view returns(buyRequests[] memory){
+    require(BuyRequests[msg.sender].length > 0, "Hypha: No token available");
+    return BuyRequests[msg.sender];
+  }
+
+  function checkReferrer(address referrer) public view returns(bool) {
+    uint256 referrerLimit = 100 * 1e18;
+    bool result = BuyRequests[referrer][0].quantity > referrerLimit / roundTokenPrice[currentRound];
+    return result;
+  }
+
+  function initiatePurchase(uint256 tokenAmount, string memory paymentId) external {
+      address buyer = msg.sender;
+
+      emit PurchaseInitiated(buyer, tokenAmount, paymentId);
+
+  }
+
+    function processPurchase(address buyer, uint256 tokenAmount, bool success) external {
+        if (success) {
+            // Transfer tokens to the buyer
+            require(hyphaToken.transfer(buyer, tokenAmount), "Token transfer failed");
+        }
+
+        emit PaymentProcessed(buyer, tokenAmount, success);
+    }
+
+    function getLatestPrice(AggregatorV3Interface priceFeed) internal view returns (uint256) {
+        (, int256 price, , ,) = priceFeed.latestRoundData();
+        require(price > 0, "Hypha: Invalid price");
+
+        return uint256(price);
+    }
+
+    function getPurchasePrice(AggregatorV3Interface coinPairPriceFeed, uint256 tokenAmount) public view returns (uint256) {
+
+        uint256 tokenPrice = getStageTokenPrice();
+        uint256 coinPrice = getLatestPrice(coinPairPriceFeed);
+        uint256 purchasePrice = (tokenAmount.mul(tokenPrice)).div(coinPrice);
+
+        return uint256(purchasePrice);
+    }
+
+
+    function getTokenAmount(AggregatorV3Interface coinPairPriceFeed, uint256 coinAmount) public view returns (uint256) {
+
+        uint256 tokenPrice = getStageTokenPrice();
+        uint256 coinPrice = getLatestPrice(coinPairPriceFeed);
+        uint256 purchaseAmount = (coinPrice.div(tokenPrice)).mul(coinAmount);
+
+        return uint256(purchaseAmount);
+    }
+
+
+    function buyTokenWithEther(
+        uint256 tokenAmount,
+        address referrerAddress,
+        address coinPair
+    ) external payable whenNotPaused nonReentrant returns (bool){
+        require(totalPresaleToken() < totalTokenSold, "HYPHA: All Tokens Solded Out");
+        require(msg.sender != address(0), "HYPHA: Can't use Address 0");
+        require(tokenAmount > 0, "HYPHA: Token quantity must be greater than 0");
+        require(SafeMath.add(roundTokenSold, tokenAmount) <= roundTokenLimit, "HYPHA: Not enough Token Left");
+        require(currentRound < 8, "HYPHA: Presale has ended");
+        require(msg.sender != referrerAddress, "HYPHA: Buyer and Referer can't be the same address");
+
+        AggregatorV3Interface coinPairPriceFeed = AggregatorV3Interface(coinPair);
+        uint256 tokenValue = getPurchasePrice(coinPairPriceFeed, tokenAmount);
+
+        (bool sent, /*bytes memory data*/) = presaleWallet.call{value: tokenValue}("");
+        require(sent, "HYPHA: Transaction failed");
+
+        uint256 reward = 0;
+
+        if (referrerAddress != address(0)) {
+          require(checkReferrer(referrerAddress), "HYPHA: invalid referrer");
+          reward = tokenAmount.mul(roundRewardPercentage);
+          BuyReferrals[referrerAddress] = msg.sender;
+          BuyRequests[referrerAddress][0].rewards = (BuyRequests[referrerAddress][0].rewards).add(reward); 
+        } 
+        if (BuyRequests[msg.sender].length > 0) {
+            BuyRequests[msg.sender][0].quantity = (BuyRequests[msg.sender][0].quantity).add(tokenAmount);
+            BuyRequests[msg.sender][0].rewards = (BuyRequests[msg.sender][0].rewards).add(reward); 
+        } else {
+          buyRequests memory buyReq = buyRequests(
+            tokenAmount,
+            reward
+          );
+
+          BuyRequests[msg.sender].push(buyReq);
+
+        }
+
+        return true;
+    }
+
+
+    function buyTokenWithCoin(
+        uint256 tokenAmount,
+        address referrerAddress,
+        address coinPair
+    ) external payable whenNotPaused nonReentrant returns (bool){
+      require(totalPresaleToken() < totalTokenSold, "HYPHA: All Tokens Solded Out");
+      require(msg.sender != address(0), "HYPHA: Can't use Address 0");
+      require(tokenAmount > 0, "HYPHA: Token quantity must be greater than 0");
+      require(SafeMath.add(roundTokenSold, tokenAmount) <= roundTokenLimit, "HYPHA: Not enough Token Left");
+      require(currentRound < 8, "HYPHA: Presale has ended");
+      require(msg.sender != referrerAddress, "HYPHA: Buyer and Referer can't be the same address");
+      require(CoinPairs[coinPair][0].active, "HYPHA: Coin pair not available");
+
+
+      AggregatorV3Interface coinPairPriceFeed = AggregatorV3Interface(coinPair);
+      uint256 tokenValue = getPurchasePrice(coinPairPriceFeed, tokenAmount);
+
+      IERC20 IERC20Coin = IERC20(CoinPairs[coinPair][0].coinAddress);
+      IERC20Coin.safeTransferFrom(msg.sender, presaleWallet, tokenValue);
+     
+      uint256 reward = 0;
+
+      if (referrerAddress != address(0)) {
+        require(checkReferrer(referrerAddress), "HYPHA: invalid referrer");
+        reward = tokenAmount.mul(roundRewardPercentage);
+        BuyReferrals[referrerAddress] = msg.sender;
+        BuyRequests[referrerAddress][0].rewards = (BuyRequests[referrerAddress][0].rewards).add(reward); 
+      } 
+      if (BuyRequests[msg.sender].length > 0) {
+          BuyRequests[msg.sender][0].quantity = (BuyRequests[msg.sender][0].quantity).add(tokenAmount);
+          BuyRequests[msg.sender][0].rewards = (BuyRequests[msg.sender][0].rewards).add(reward); 
+      } else {
+        buyRequests memory buyReq = buyRequests(
+          tokenAmount,
+          reward
+        );
+
+        BuyRequests[msg.sender].push(buyReq);
+
+      }
+
+      return true;
+
+    }
+
+    function otcBuyToken(
+        address buyer,
+        uint256 tokenAmount
+    ) public nonReentrant onlyRole(PRESALE_ROLE) returns (bool){
+        require(totalPresaleToken() < totalTokenSold, "HYPHA: All Tokens Solded Out");
+        require(buyer != address(0), "HYPHA: Can't use Address 0");
+        require(tokenAmount > 0, "HYPHA: Token quantity must be greater than 0");
+        require(roundTokenSold.add(tokenAmount) <= roundTokenLimit, "HYPHA: Not enough token Left in this stage");
+        require(currentRound < 8, "HYPHA: Presale has ended");
+
+        uint256 reward = 0;
+
+        buyRequests memory buyReq = buyRequests(
+          tokenAmount,
+          reward
+        );
+
+        BuyRequests[buyer].push(buyReq);
+
+        return true;
+    }
+
+    function setOTCReferral(address referrerAddress, address newBuyerAddress, uint256 rewardAmount) public onlyRole(PRESALE_ROLE) returns (bool){
+      require(checkReferrer(referrerAddress), "HYPHA: invalid referrer");
+
+      BuyRequests[referrerAddress][0].rewards = (BuyRequests[referrerAddress][0].rewards).add(rewardAmount); 
+      BuyRequests[newBuyerAddress][0].rewards = (BuyRequests[newBuyerAddress][0].rewards).add(rewardAmount); 
+      BuyReferrals[referrerAddress] = newBuyerAddress;
+
+      return true;
+    }
+
+    function setCoinPairs(address coinPair, address coinAddress, uint256 chainId) public onlyRole(DEFAULT_ADMIN_ROLE) returns (bool){
+      if(CoinPairs[coinPair].length > 0) {
+        CoinPairs[coinPair][0].coinAddress = coinAddress;
+        CoinPairs[coinPair][0].chainID = chainId;
+      } else {
+
+        coinPairs memory setPair = coinPairs(
+          coinAddress,
+          chainId,
+          true
+        );
+
+        CoinPairs[coinPair].push(setPair);
+
+      }
+      return true;
+    }
+
+    function enableCoinPair(address CoinPair) public onlyRole(DEFAULT_ADMIN_ROLE) returns (bool){
+      require(CoinPairs[CoinPair].length >= 1, "Hypha: Coin pair not exist");
+      require(CoinPairs[CoinPair][0].active = false, "Hypha: Coin pair already active");
+
+      CoinPairs[CoinPair][0].active = true;
+
+      return true;
+    }
+
+    function disableCoinPair(address CoinPair) public onlyRole(DEFAULT_ADMIN_ROLE) returns (bool){
+      require(CoinPairs[CoinPair].length >= 1, "Hypha: Coin pair not exist");
+      require(CoinPairs[CoinPair][0].active = true, "Hypha: Coin pair already disabled");
+
+      CoinPairs[CoinPair][0].active = false;
+
+      return true;
+    }
+
+    function getCoinPair(address CoinPair) public view onlyRole(DEFAULT_ADMIN_ROLE) returns (coinPairs memory){
+      require(CoinPairs[CoinPair].length >= 1, "Hypha: Coin pair not exist");
+
+      return CoinPairs[CoinPair][0];
+
+    }
+
+    function getStageTokenPrice() public view returns (uint256) {
+        return uint256(roundTokenPrice[currentRound]);
+    }
+
+    function getStageTokenLimit() public view returns (uint256) {
+        return uint256(roundTokenLimit);
+    }
+
+    function pause() external whenNotPaused onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() external whenPaused onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+
+    function enableClaim() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        claimEnabled = true;
+    }
+
+    function initialClaim() public nonReentrant returns (bool success) {
+      require(BuyRequests[msg.sender].length > 0, "HYPHA: No data available");
+       require(claimEnabled, "HYPHA: Claiming not available");
+      
+      uint256 duration = 0;
+      uint256 tokenAmount = (BuyRequests[msg.sender][0].quantity).add(BuyRequests[msg.sender][0].rewards);
+
+      require(vestingContract.transferToVesting(msg.sender, tokenAmount, duration), "HYPHA: Vesting could not be set");
+      hyphaToken.safeTransfer(vestingAddress, tokenAmount);
+
+      return true;
+    }
+
+    function claimStuckTokens(address coin) external nonReentrant onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(coin != address(this), "HYPHA: Owner cannot claim native tokens");
+        if (coin == address(0x0)) {
+            payable(msg.sender).transfer(address(this).balance);
+            return;
+        }
+        IERC20 ERC20token = IERC20(coin);
+        uint256 balance = ERC20token.balanceOf(address(this));
+        ERC20token.safeTransfer(msg.sender, balance);
+    }
+
+
+    receive() external payable {
+    emit Received(msg.sender, msg.value);
+    }
+
+
+}
+
+
+library SafeMath {
+
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+
+    if (a == 0) {
+      return 0;
+    }
+
+    uint256 c = a * b;
+    require(c / a == b);
+
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    require(b > 0); // Solidity only automatically asserts when dividing by 0
+    uint256 c = a / b;
+
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    require(b <= a);
+    uint256 c = a - b;
+
+    return c;
+  }
+
+  function add(uint256 a, uint256 b) internal pure returns (uint256) {
+    uint256 c = a + b;
+    require(c >= a);
+
+    return c;
+  }
+
+  function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+    require(b != 0);
+    return a % b;
+  }
+}
